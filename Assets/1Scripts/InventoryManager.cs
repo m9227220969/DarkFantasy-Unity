@@ -6,38 +6,32 @@ public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
 
-    [Header(" UI References")]
-    public GameObject inventoryWindow;      // Панель инвентаря
-    public Transform gridContent;           // Объект "Content" внутри Scroll View
-    public GameObject itemSlotPrefab;       // Префаб ячейки инвентаря
+    [Header("🖼 UI References")]
+    public GameObject inventoryWindow;
+    public Transform gridContent;
+    public GameObject itemSlotPrefab;
 
-    [Header(" Equipment Slots")]
-    public Transform slotWeapon;            // Слот оружия (Правая рука)
-    public Transform slotShield;            // Слот щита (Левая рука)
-    public Transform slotArmor;             // Слот брони (Туловище)
+    [Header("⚔ Equipment Slots")]
+    public Transform slotWeapon;
+    public Transform slotShield;
+    public Transform slotArmor;
 
     [Header("📦 Data")]
-    public List<ItemData> inventory = new List<ItemData>(); // Сумка
+    public List<ItemData> inventory = new List<ItemData>();
     public ItemData equippedWeapon;
     public ItemData equippedShield;
     public ItemData equippedArmor;
 
+    [Header("🔽 HUD Group")]
+    public GameObject hudGroup;
+
     private void Awake()
     {
-        // Паттерн Singleton для удобного доступа из других скриптов
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
 
-        // По умолчанию инвентарь закрыт
-        if (inventoryWindow != null)
-            inventoryWindow.SetActive(false);
+        if (inventoryWindow != null) inventoryWindow.SetActive(false);
+        if (hudGroup != null) hudGroup.SetActive(true);
     }
 
     private void Start()
@@ -45,20 +39,18 @@ public class InventoryManager : MonoBehaviour
         RefreshInventoryUI();
     }
 
-    /// <summary>
-    /// Открыть/закрыть инвентарь (GDD 4.2.3)
-    /// </summary>
     public void ToggleInventory()
     {
         if (inventoryWindow == null) return;
 
-        bool isActive = !inventoryWindow.activeSelf;
-        inventoryWindow.SetActive(isActive);
+        bool isOpen = !inventoryWindow.activeSelf;
+        inventoryWindow.SetActive(isOpen);
+
+        if (hudGroup != null)
+            hudGroup.SetActive(!isOpen);
     }
 
-    /// <summary>
-    /// Перерисовывает сетку инвентаря на основе списка inventory
-    /// </summary>
+    // ✅ Этот метод должен быть строго так:
     public void RefreshInventoryUI()
     {
         if (gridContent == null || itemSlotPrefab == null)
@@ -67,30 +59,25 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        // 1. Очищаем старые ячейки
+        // Очищаем старые ячейки
         foreach (Transform child in gridContent)
         {
             Destroy(child.gameObject);
         }
 
-        // 2. Создаём новые ячейки для каждого предмета
+        // Создаём новые для каждого предмета
         foreach (ItemData item in inventory)
         {
-            if (item == null) continue; // Пропускаем пустые слоты
+            if (item == null) continue;
 
             GameObject slotObj = Instantiate(itemSlotPrefab, gridContent);
             InventoryItem slotScript = slotObj.GetComponent<InventoryItem>();
 
             if (slotScript != null)
-            {
                 slotScript.Setup(item);
-            }
         }
     }
 
-    /// <summary>
-    /// Экипировать предмет (вызывается из InventoryItem при клике)
-    /// </summary>
     public void EquipItem(ItemData item)
     {
         if (item == null) return;
@@ -102,47 +89,30 @@ public class InventoryManager : MonoBehaviour
                 Debug.Log($"[Equip] Надето: {item.itemName} (+{item.damageBonus} урон)");
                 UpdateEquipmentSlotVisual(slotWeapon, item);
                 break;
-
             case ItemData.ItemType.Shield:
                 equippedShield = item;
                 Debug.Log($"[Equip] Надето: {item.itemName} (+{item.armorBonus} защита)");
                 UpdateEquipmentSlotVisual(slotShield, item);
                 break;
-
             case ItemData.ItemType.Armor:
                 equippedArmor = item;
                 Debug.Log($"[Equip] Надето: {item.itemName} (+{item.armorBonus} защита)");
                 UpdateEquipmentSlotVisual(slotArmor, item);
                 break;
-
             default:
-                Debug.Log($"[Equip] Нельзя экипировать: {item.itemName} (тип: {item.type})");
+                Debug.Log($"[Equip] Нельзя экипировать: {item.itemName}");
                 break;
         }
     }
 
-    /// <summary>
-    /// Обновляет иконку в слоте экипировки
-    /// </summary>
     private void UpdateEquipmentSlotVisual(Transform slot, ItemData item)
     {
         if (slot == null) return;
-
-        // Ищем компонент Image внутри слота
         Image iconImage = slot.GetComponentInChildren<Image>();
         if (iconImage != null)
         {
-            if (item != null && item.icon != null)
-            {
-                iconImage.sprite = item.icon;
-                iconImage.enabled = true;
-            }
-            else
-            {
-                // Если предмет снят, можно поставить иконку "пустой слот"
-                // Пока просто скрываем или оставляем как есть
-                iconImage.enabled = true;
-            }
+            iconImage.sprite = (item != null && item.icon != null) ? item.icon : null;
+            iconImage.enabled = true;
         }
     }
 }

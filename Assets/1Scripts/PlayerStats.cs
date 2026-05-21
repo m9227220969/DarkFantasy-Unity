@@ -37,4 +37,47 @@ public class PlayerStats : MonoBehaviour
         silver += amount;
         Debug.Log($"Получено {amount} серебра. Всего: {silver}");
     }
+
+    // ... (твои старые переменные maxHealth, currentHealth, silver) ...
+
+    // Эти переменные будем хранить для боевых расчётов
+    public int totalWeaponDamageBonus;
+    public int totalArmorBonus; // Для тела
+    public int totalShieldBonus; // Для блока
+
+    /// <summary>
+    /// Вызывается из InventoryManager при смене экипировки
+    /// </summary>
+    public void RecalculateStats()
+    {
+        // Сбрасываем бонусы перед пересчётом
+        totalWeaponDamageBonus = 0;
+        totalArmorBonus = 0;
+        totalShieldBonus = 0;
+
+        // Если есть менеджер инвентаря и он существует
+        if (InventoryManager.Instance != null)
+        {
+            // 1. Оружие
+            if (InventoryManager.Instance.equippedWeapon != null)
+            {
+                totalWeaponDamageBonus = InventoryManager.Instance.equippedWeapon.damageBonus;
+            }
+
+            // 2. Броня (Туловище)
+            if (InventoryManager.Instance.equippedArmor != null)
+            {
+                totalArmorBonus = InventoryManager.Instance.equippedArmor.armorBonus;
+            }
+
+            // 3. Щит
+            if (InventoryManager.Instance.equippedShield != null)
+            {
+                totalShieldBonus = InventoryManager.Instance.equippedShield.armorBonus;
+            }
+        }
+
+        // Логируем для проверки
+        Debug.Log($"[Stats] Recalculated: DmgBonus={totalWeaponDamageBonus}, Armor={totalArmorBonus}, Shield={totalShieldBonus}");
+    }
 }

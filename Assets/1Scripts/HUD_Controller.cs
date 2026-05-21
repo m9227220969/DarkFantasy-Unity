@@ -27,6 +27,6 @@ public class HUD_Controller : MonoBehaviour
 
     void UpdateSilverUI()
     {
-        silverText.text = "💰 " + playerStats.silver.ToString();
+        silverText.text = "Серебро: " + playerStats.silver.ToString();
     }
 }

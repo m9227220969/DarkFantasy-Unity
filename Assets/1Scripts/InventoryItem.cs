@@ -1,21 +1,15 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems; // вљ пёЏ Р’Р°Р¶РЅРѕ!
 
-public class InventoryItem : MonoBehaviour
+public class InventoryItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [Header("Data")]
     public ItemData data;
-
-    [Header("UI")]
     public Image iconImage;
 
-    /// <summary>
-    /// Вызывается из InventoryManager при создании ячейки
-    /// </summary>
     public void Setup(ItemData itemData)
     {
         data = itemData;
-
         if (iconImage != null && itemData != null && itemData.icon != null)
         {
             iconImage.sprite = itemData.icon;
@@ -27,18 +21,27 @@ public class InventoryItem : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Этот метод нужно привязать к OnClick() кнопки на префабе
-    /// </summary>
     public void OnClickItem()
     {
         if (data != null)
         {
             InventoryManager.Instance.EquipItem(data);
         }
-        else
+    }
+
+    // --- РњРµС‚РѕРґС‹ РґР»СЏ РўСѓР»С‚РёРїРѕРІ ---
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (data != null)
         {
-            Debug.LogWarning("[InventoryItem] Попытка кликнуть по пустой ячейке");
+            // РџРѕРєР°Р·С‹РІР°РµРј С‚СѓР»С‚РёРї РІ РїРѕР·РёС†РёРё РєСѓСЂСЃРѕСЂР°
+            TooltipManager.Instance.ShowTooltip(data, eventData.position);
         }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        TooltipManager.Instance.HideTooltip();
     }
 }

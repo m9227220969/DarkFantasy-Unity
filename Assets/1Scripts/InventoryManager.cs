@@ -11,7 +11,7 @@ public class InventoryManager : MonoBehaviour
     public Transform gridContent;
     public GameObject itemSlotPrefab;
 
-    [Header("⚔ Equipment Slots")]
+    [Header(" Equipment Slots")]
     public Transform slotWeapon;
     public Transform slotShield;
     public Transform slotArmor;
@@ -25,6 +25,8 @@ public class InventoryManager : MonoBehaviour
     [Header("🔽 HUD Group")]
     public GameObject hudGroup;
 
+    private PlayerStats playerStats;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -32,6 +34,8 @@ public class InventoryManager : MonoBehaviour
 
         if (inventoryWindow != null) inventoryWindow.SetActive(false);
         if (hudGroup != null) hudGroup.SetActive(true);
+
+        playerStats = FindAnyObjectByType<PlayerStats>();
     }
 
     private void Start()
@@ -50,58 +54,105 @@ public class InventoryManager : MonoBehaviour
             hudGroup.SetActive(!isOpen);
     }
 
-    // ✅ Этот метод должен быть строго так:
     public void RefreshInventoryUI()
     {
-        if (gridContent == null || itemSlotPrefab == null)
-        {
-            Debug.LogWarning("[Inventory] Не назначены Grid Content или ItemSlot Prefab в инспекторе!");
-            return;
-        }
+        if (gridContent == null || itemSlotPrefab == null) return;
 
-        // Очищаем старые ячейки
         foreach (Transform child in gridContent)
-        {
             Destroy(child.gameObject);
-        }
 
-        // Создаём новые для каждого предмета
         foreach (ItemData item in inventory)
         {
             if (item == null) continue;
 
             GameObject slotObj = Instantiate(itemSlotPrefab, gridContent);
             InventoryItem slotScript = slotObj.GetComponent<InventoryItem>();
-
-            if (slotScript != null)
-                slotScript.Setup(item);
+            if (slotScript != null) slotScript.Setup(item);
         }
     }
 
+    /// <summary>
+    /// Экипировать предмет из сумки (с заменой старого)
+    /// </summary>
     public void EquipItem(ItemData item)
     {
-        if (item == null) return;
+        if (item == null || !inventory.Contains(item)) return;
+
+        ItemData oldItem = null;
 
         switch (item.type)
         {
             case ItemData.ItemType.Weapon:
+                oldItem = equippedWeapon;
                 equippedWeapon = item;
-                Debug.Log($"[Equip] Надето: {item.itemName} (+{item.damageBonus} урон)");
                 UpdateEquipmentSlotVisual(slotWeapon, item);
                 break;
             case ItemData.ItemType.Shield:
+                oldItem = equippedShield;
                 equippedShield = item;
-                Debug.Log($"[Equip] Надето: {item.itemName} (+{item.armorBonus} защита)");
                 UpdateEquipmentSlotVisual(slotShield, item);
                 break;
             case ItemData.ItemType.Armor:
+                oldItem = equippedArmor;
                 equippedArmor = item;
-                Debug.Log($"[Equip] Надето: {item.itemName} (+{item.armorBonus} защита)");
                 UpdateEquipmentSlotVisual(slotArmor, item);
                 break;
             default:
-                Debug.Log($"[Equip] Нельзя экипировать: {item.itemName}");
+                return;
+        }
+
+        inventory.Remove(item);
+        if (oldItem != null) inventory.Add(oldItem);
+
+        RefreshInventoryUI();
+        if (playerStats != null) playerStats.RecalculateStats();
+
+        // 🔑 Принудительно скрываем тултип после изменения инвентаря
+        if (TooltipManager.Instance != null)
+            TooltipManager.Instance.HideTooltip();
+    
+}
+
+    /// <summary>
+    /// Снять предмет из слота экипировки
+    /// </summary>
+    public void UnequipItem(ItemData.ItemType type)
+    {
+        ItemData itemToReturn = null;
+        Transform targetSlot = null;
+
+        switch (type)
+        {
+            case ItemData.ItemType.Weapon:
+                if (equippedWeapon == null) return;
+                itemToReturn = equippedWeapon;
+                equippedWeapon = null;
+                targetSlot = slotWeapon;
                 break;
+            case ItemData.ItemType.Shield:
+                if (equippedShield == null) return;
+                itemToReturn = equippedShield;
+                equippedShield = null;
+                targetSlot = slotShield;
+                break;
+            case ItemData.ItemType.Armor:
+                if (equippedArmor == null) return;
+                itemToReturn = equippedArmor;
+                equippedArmor = null;
+                targetSlot = slotArmor;
+                break;
+        }
+
+        if (itemToReturn != null)
+        {
+            inventory.Add(itemToReturn);
+            UpdateEquipmentSlotVisual(targetSlot, null);
+            RefreshInventoryUI();
+            if (playerStats != null) playerStats.RecalculateStats();
+
+            // 🔑 Принудительно скрываем тултип после изменения инвентаря
+            if (TooltipManager.Instance != null)
+                TooltipManager.Instance.HideTooltip();
         }
     }
 

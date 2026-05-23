@@ -10,7 +10,10 @@ public class SceneManagerController : MonoBehaviour
     {
         StartCoroutine(LoadSceneAsync("Hub_Inn"));
     }
-
+    public void LoadTestCombat()
+    {
+        StartCoroutine(LoadSceneAsync("Combat_Forest"));
+    }
     public void ContinueGame()
     {
         // Пока просто загружаем хаб, позже добавим проверку сохранения

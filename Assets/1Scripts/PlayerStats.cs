@@ -1,83 +1,100 @@
-using UnityEngine;
+п»їusing UnityEngine;
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("Характеристики")]
-    public int maxHealth = 10;      // GDD 4.5.2: Выносливость = 10
+    [Header("РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё")]
+    public int maxHealth = 10;      // GDD 4.5.2: Р’С‹РЅРѕСЃР»РёРІРѕСЃС‚СЊ = 10
     public int currentHealth;
-    public int silver = 0;          // GDD 4.7.2: Старт с 0 серебра
+    public int silver = 0;          // GDD 4.7.2: РЎС‚Р°СЂС‚ СЃ 0 СЃРµСЂРµР±СЂР°
 
     private void Start()
     {
-        // При старте здоровье полное
+        // РџСЂРё СЃС‚Р°СЂС‚Рµ Р·РґРѕСЂРѕРІСЊРµ РїРѕР»РЅРѕРµ
         currentHealth = maxHealth;
     }
-    
-    // Метод получения урона
+    private static PlayerStats instance;
+
+    private void Awake()
+    {
+        // рџ”‘ Р—Р°С‰РёС‚Р° РѕС‚ РґСѓР±Р»РёРєР°С‚РѕРІ РїСЂРё РїРѕРІС‚РѕСЂРЅРѕРј РЅР°Р¶Р°С‚РёРё Play
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+
+        // рџ”‘ РљР РРўРР§Р•РЎРљР Р’РђР–РќРћ: РћР±СЉРµРєС‚ РѕСЃС‚Р°РЅРµС‚СЃСЏ РІ РїР°РјСЏС‚Рё РїСЂРё РїРµСЂРµС…РѕРґРµ РјРµР¶РґСѓ СЃС†РµРЅР°РјРё
+        DontDestroyOnLoad(gameObject);
+
+        // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ С‚РѕР»СЊРєРѕ РїСЂРё РїРµСЂРІРѕРј СЃРѕР·РґР°РЅРёРё
+        if (currentHealth == 0) currentHealth = maxHealth;
+    }
+    // РњРµС‚РѕРґ РїРѕР»СѓС‡РµРЅРёСЏ СѓСЂРѕРЅР°
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
         if (currentHealth < 0) currentHealth = 0;
 
-        // Позже здесь будет вызов Game Over
-        Debug.Log($"Получено {damage} урона. Осталось HP: {currentHealth}");
+        // РџРѕР·Р¶Рµ Р·РґРµСЃСЊ Р±СѓРґРµС‚ РІС‹Р·РѕРІ Game Over
+        Debug.Log($"РџРѕР»СѓС‡РµРЅРѕ {damage} СѓСЂРѕРЅР°. РћСЃС‚Р°Р»РѕСЃСЊ HP: {currentHealth}");
     }
 
-    // Метод лечения
+    // РњРµС‚РѕРґ Р»РµС‡РµРЅРёСЏ
     public void Heal(int amount)
     {
         currentHealth += amount;
         if (currentHealth > maxHealth) currentHealth = maxHealth;
-        Debug.Log($"Восстановлено {amount} HP. Текущее HP: {currentHealth}");
+        Debug.Log($"Р’РѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРѕ {amount} HP. РўРµРєСѓС‰РµРµ HP: {currentHealth}");
     }
 
-    // Метод добавления серебра
+    // РњРµС‚РѕРґ РґРѕР±Р°РІР»РµРЅРёСЏ СЃРµСЂРµР±СЂР°
     public void AddSilver(int amount)
     {
         silver += amount;
-        Debug.Log($"Получено {amount} серебра. Всего: {silver}");
+        Debug.Log($"РџРѕР»СѓС‡РµРЅРѕ {amount} СЃРµСЂРµР±СЂР°. Р’СЃРµРіРѕ: {silver}");
     }
 
-    // ... (твои старые переменные maxHealth, currentHealth, silver) ...
+    // ... (С‚РІРѕРё СЃС‚Р°СЂС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ maxHealth, currentHealth, silver) ...
 
-    // Эти переменные будем хранить для боевых расчётов
+    // Р­С‚Рё РїРµСЂРµРјРµРЅРЅС‹Рµ Р±СѓРґРµРј С…СЂР°РЅРёС‚СЊ РґР»СЏ Р±РѕРµРІС‹С… СЂР°СЃС‡С‘С‚РѕРІ
     public int totalWeaponDamageBonus;
-    public int totalArmorBonus; // Для тела
-    public int totalShieldBonus; // Для блока
+    public int totalArmorBonus; // Р”Р»СЏ С‚РµР»Р°
+    public int totalShieldBonus; // Р”Р»СЏ Р±Р»РѕРєР°
 
     /// <summary>
-    /// Вызывается из InventoryManager при смене экипировки
+    /// Р’С‹Р·С‹РІР°РµС‚СЃСЏ РёР· InventoryManager РїСЂРё СЃРјРµРЅРµ СЌРєРёРїРёСЂРѕРІРєРё
     /// </summary>
     public void RecalculateStats()
     {
-        // Сбрасываем бонусы перед пересчётом
+        // РЎР±СЂР°СЃС‹РІР°РµРј Р±РѕРЅСѓСЃС‹ РїРµСЂРµРґ РїРµСЂРµСЃС‡С‘С‚РѕРј
         totalWeaponDamageBonus = 0;
         totalArmorBonus = 0;
         totalShieldBonus = 0;
 
-        // Если есть менеджер инвентаря и он существует
+        // Р•СЃР»Рё РµСЃС‚СЊ РјРµРЅРµРґР¶РµСЂ РёРЅРІРµРЅС‚Р°СЂСЏ Рё РѕРЅ СЃСѓС‰РµСЃС‚РІСѓРµС‚
         if (InventoryManager.Instance != null)
         {
-            // 1. Оружие
+            // 1. РћСЂСѓР¶РёРµ
             if (InventoryManager.Instance.equippedWeapon != null)
             {
                 totalWeaponDamageBonus = InventoryManager.Instance.equippedWeapon.damageBonus;
             }
 
-            // 2. Броня (Туловище)
+            // 2. Р‘СЂРѕРЅСЏ (РўСѓР»РѕРІРёС‰Рµ)
             if (InventoryManager.Instance.equippedArmor != null)
             {
                 totalArmorBonus = InventoryManager.Instance.equippedArmor.armorBonus;
             }
 
-            // 3. Щит
+            // 3. Р©РёС‚
             if (InventoryManager.Instance.equippedShield != null)
             {
                 totalShieldBonus = InventoryManager.Instance.equippedShield.armorBonus;
             }
         }
 
-        // Логируем для проверки
+        // Р›РѕРіРёСЂСѓРµРј РґР»СЏ РїСЂРѕРІРµСЂРєРё
         Debug.Log($"[Stats] Recalculated: DmgBonus={totalWeaponDamageBonus}, Armor={totalArmorBonus}, Shield={totalShieldBonus}");
     }
 }

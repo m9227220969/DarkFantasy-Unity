@@ -2,99 +2,108 @@
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("Характеристики")]
-    public int maxHealth = 10;      // GDD 4.5.2: Выносливость = 10
-    public int currentHealth;
-    public int silver = 0;          // GDD 4.7.2: Старт с 0 серебра
+    public static PlayerStats Instance { get; private set; }
 
-    private void Start()
-    {
-        // При старте здоровье полное
-        currentHealth = maxHealth;
-    }
-    private static PlayerStats instance;
+    [Header("Base Stats")]
+    public int strength = 1;
+    public int endurance = 10;
+    public int intelligence = 0;
+
+    [Header("Current State")]
+    public int maxHealth;
+    public int currentHealth;
+    public int silver = 0;
+    public int currentXP = 0;
+    public int level = 1;
+
+    [Header("Equipment Bonuses")]
+    public int totalWeaponDamageBonus;
+    public int totalArmorBonus;       // Passive (Body armor)
+    public int totalShieldBonus;      // Active (Shield bonus when blocking)
 
     private void Awake()
     {
-        // 🔑 Защита от дубликатов при повторном нажатии Play
-        if (instance != null && instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-        instance = this;
-
-        // 🔑 КРИТИЧЕСКИ ВАЖНО: Объект останется в памяти при переходе между сценами
+        Instance = this;
         DontDestroyOnLoad(gameObject);
-
-        // Инициализация только при первом создании
-        if (currentHealth == 0) currentHealth = maxHealth;
     }
-    // Метод получения урона
-    public void TakeDamage(int damage)
+
+    private void Start()
     {
-        currentHealth -= damage;
-        if (currentHealth < 0) currentHealth = 0;
+        RecalculateMaxHealth();
 
-        // Позже здесь будет вызов Game Over
-        Debug.Log($"Получено {damage} урона. Осталось HP: {currentHealth}");
+        // Устанавливаем здоровье только если оно ещё не задано
+        if (currentHealth == 0)
+        {
+            currentHealth = maxHealth;
+        }
+
     }
 
-    // Метод лечения
-    public void Heal(int amount)
+    public void RecalculateMaxHealth()
     {
-        currentHealth += amount;
-        if (currentHealth > maxHealth) currentHealth = maxHealth;
-        Debug.Log($"Восстановлено {amount} HP. Текущее HP: {currentHealth}");
+        maxHealth = endurance;
     }
 
-    // Метод добавления серебра
-    public void AddSilver(int amount)
-    {
-        silver += amount;
-        Debug.Log($"Получено {amount} серебра. Всего: {silver}");
-    }
-
-    // ... (твои старые переменные maxHealth, currentHealth, silver) ...
-
-    // Эти переменные будем хранить для боевых расчётов
-    public int totalWeaponDamageBonus;
-    public int totalArmorBonus; // Для тела
-    public int totalShieldBonus; // Для блока
-
-    /// <summary>
-    /// Вызывается из InventoryManager при смене экипировки
-    /// </summary>
+    // Call this whenever equipment changes OR before combat starts
     public void RecalculateStats()
     {
-        // Сбрасываем бонусы перед пересчётом
+        // Reset bonuses
         totalWeaponDamageBonus = 0;
         totalArmorBonus = 0;
         totalShieldBonus = 0;
 
-        // Если есть менеджер инвентаря и он существует
+        // Read from InventoryManager
         if (InventoryManager.Instance != null)
         {
-            // 1. Оружие
             if (InventoryManager.Instance.equippedWeapon != null)
             {
                 totalWeaponDamageBonus = InventoryManager.Instance.equippedWeapon.damageBonus;
             }
 
-            // 2. Броня (Туловище)
             if (InventoryManager.Instance.equippedArmor != null)
             {
                 totalArmorBonus = InventoryManager.Instance.equippedArmor.armorBonus;
             }
 
-            // 3. Щит
             if (InventoryManager.Instance.equippedShield != null)
             {
                 totalShieldBonus = InventoryManager.Instance.equippedShield.armorBonus;
             }
         }
 
-        // Логируем для проверки
-        Debug.Log($"[Stats] Recalculated: DmgBonus={totalWeaponDamageBonus}, Armor={totalArmorBonus}, Shield={totalShieldBonus}");
+        Debug.Log($"Stats Updated: WeaponBonus={totalWeaponDamageBonus}, ArmorBonus={totalArmorBonus}, ShieldBonus={totalShieldBonus}");
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        if (currentHealth < 0) currentHealth = 0;
+    }
+
+    public void Heal(int amount)
+    {
+        currentHealth += amount;
+        if (currentHealth > maxHealth) currentHealth = maxHealth;
+    }
+
+    public void AddXP(int amount)
+    {
+        currentXP += amount;
+        int xpNeeded = Mathf.RoundToInt(10f * Mathf.Pow(1.35f, level - 2));
+
+        if (currentXP >= xpNeeded)
+        {
+            level++;
+            currentXP -= xpNeeded;
+            endurance++;
+            RecalculateMaxHealth();
+            currentHealth = maxHealth;
+            Debug.Log($"Level Up! New Level: {level}");
+        }
     }
 }

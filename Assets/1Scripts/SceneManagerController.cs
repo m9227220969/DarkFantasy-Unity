@@ -12,7 +12,25 @@ public class SceneManagerController : MonoBehaviour
     }
     public void LoadTestCombat()
     {
+        // Закрываем инвентарь ПЕРЕД переходом в бой
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.ForceCloseInventory();
+        }
+
         StartCoroutine(LoadSceneAsync("Combat_Forest"));
+    }
+
+    // Добавь метод для возврата в хаб из боя
+    public void ReturnToHubFromCombat()
+    {
+        // Закрываем инвентарь при возврате
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.ForceCloseInventory();
+        }
+
+        StartCoroutine(LoadSceneAsync("Hub_Inn"));
     }
     public void ContinueGame()
     {

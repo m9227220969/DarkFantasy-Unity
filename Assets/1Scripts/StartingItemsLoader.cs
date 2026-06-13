@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class StartingItemsLoader : MonoBehaviour
 {
@@ -11,23 +10,23 @@ public class StartingItemsLoader : MonoBehaviour
 
     private void Start()
     {
-        if (InventoryManager.Instance == null) return;
-
-        var inv = InventoryManager.Instance;
-
-        if (inv.inventory.Count == 0)
+        if (InventoryData.Instance == null)
         {
-            if (startWeapon != null) inv.inventory.Add(startWeapon);
-            if (startShield != null) inv.inventory.Add(startShield);
-            if (startArmor != null) inv.inventory.Add(startArmor);
-            if (startPie != null) inv.inventory.Add(startPie);
+            Debug.LogError("InventoryData.Instance is null!");
+            return;
+        }
 
-            inv.RefreshInventoryUI();
+        var invData = InventoryData.Instance;
 
-            // Экипируем стартовые предметы
-            if (startWeapon != null) inv.EquipItem(startWeapon);
-            if (startShield != null) inv.EquipItem(startShield);
-            if (startArmor != null) inv.EquipItem(startArmor);
+        // Только при первом запуске (если инвентарь пуст)
+        if (invData.inventory.Count == 0)
+        {
+            if (startWeapon != null) invData.inventory.Add(startWeapon);
+            if (startShield != null) invData.inventory.Add(startShield);
+            if (startArmor != null) invData.inventory.Add(startArmor);
+            if (startPie != null) invData.inventory.Add(startPie);
+
+            Debug.Log($"Starting items loaded: Weapon={startWeapon != null}, Shield={startShield != null}, Armor={startArmor != null}, Pie={startPie != null}");
         }
     }
 }

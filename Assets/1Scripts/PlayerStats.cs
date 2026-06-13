@@ -57,22 +57,22 @@ public class PlayerStats : MonoBehaviour
         totalArmorBonus = 0;
         totalShieldBonus = 0;
 
-        // Read from InventoryManager
-        if (InventoryManager.Instance != null)
+        // Read from InventoryData (not InventoryManager)
+        if (InventoryData.Instance != null)
         {
-            if (InventoryManager.Instance.equippedWeapon != null)
+            if (InventoryData.Instance.equippedWeapon != null)
             {
-                totalWeaponDamageBonus = InventoryManager.Instance.equippedWeapon.damageBonus;
+                totalWeaponDamageBonus = InventoryData.Instance.equippedWeapon.damageBonus;
             }
 
-            if (InventoryManager.Instance.equippedArmor != null)
+            if (InventoryData.Instance.equippedArmor != null)
             {
-                totalArmorBonus = InventoryManager.Instance.equippedArmor.armorBonus;
+                totalArmorBonus = InventoryData.Instance.equippedArmor.armorBonus;
             }
 
-            if (InventoryManager.Instance.equippedShield != null)
+            if (InventoryData.Instance.equippedShield != null)
             {
-                totalShieldBonus = InventoryManager.Instance.equippedShield.armorBonus;
+                totalShieldBonus = InventoryData.Instance.equippedShield.armorBonus;
             }
         }
 

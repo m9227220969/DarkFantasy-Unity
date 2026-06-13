@@ -375,6 +375,7 @@ GameObject:
   - component: {fileID: 665329205}
   - component: {fileID: 665329204}
   - component: {fileID: 665329203}
+  - component: {fileID: 665329206}
   m_Layer: 5
   m_Name: Btn_Quit
   m_TagString: Untagged
@@ -446,9 +447,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1975354110}
-        m_TargetAssemblyTypeName: SceneManagerController, Assembly-CSharp
-        m_MethodName: QuitGame
+      - m_Target: {fileID: 665329206}
+        m_TargetAssemblyTypeName: ButtonHandler, Assembly-CSharp
+        m_MethodName: OnButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -496,6 +497,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 665329201}
   m_CullTransparentMesh: 1
+--- !u!114 &665329206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665329201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1199976e167ea6f4390b04b665eb02bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonHandler
+  action: 3
 --- !u!1 &764384125
 GameObject:
   m_ObjectHideFlags: 0
@@ -724,6 +738,7 @@ GameObject:
   - component: {fileID: 814187334}
   - component: {fileID: 814187333}
   - component: {fileID: 814187332}
+  - component: {fileID: 814187335}
   m_Layer: 5
   m_Name: Btn_NewGame
   m_TagString: Untagged
@@ -795,9 +810,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1975354110}
-        m_TargetAssemblyTypeName: SceneManagerController, Assembly-CSharp
-        m_MethodName: StartNewGame
+      - m_Target: {fileID: 814187335}
+        m_TargetAssemblyTypeName: ButtonHandler, Assembly-CSharp
+        m_MethodName: OnButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -845,6 +860,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 814187330}
   m_CullTransparentMesh: 1
+--- !u!114 &814187335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 814187330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1199976e167ea6f4390b04b665eb02bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonHandler
+  action: 4
 --- !u!1 &1463371266
 GameObject:
   m_ObjectHideFlags: 0
@@ -1298,7 +1326,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e35ef7d8bc2b753458d22117a8c80813, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneManagerController
-  fadePanel: {fileID: 1875686574}
+  fadeOverlay: {fileID: 0}
+  fadeDuration: 0.5
 --- !u!4 &1975354111
 Transform:
   m_ObjectHideFlags: 0
@@ -1463,6 +1492,7 @@ GameObject:
   - component: {fileID: 2109169878}
   - component: {fileID: 2109169877}
   - component: {fileID: 2109169876}
+  - component: {fileID: 2109169879}
   m_Layer: 5
   m_Name: Btn_Continue
   m_TagString: Untagged
@@ -1533,7 +1563,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2109169877}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2109169879}
+        m_TargetAssemblyTypeName: ButtonHandler, Assembly-CSharp
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2109169877
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1572,6 +1614,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2109169874}
   m_CullTransparentMesh: 1
+--- !u!114 &2109169879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109169874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1199976e167ea6f4390b04b665eb02bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonHandler
+  action: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

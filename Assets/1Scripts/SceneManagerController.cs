@@ -1,18 +1,70 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class SceneManagerController : MonoBehaviour
 {
-    // Ссылка на объект затемнения (создадим на след. шаге)
-    [SerializeField] private GameObject fadePanel;
+    public static SceneManagerController Instance { get; private set; }
 
+    [Header("Fade Settings")]
+    public GameObject fadeOverlay;
+    public float fadeDuration = 0.5f;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    private void Start()
+    {
+        if (fadeOverlay == null)
+        {
+            Debug.LogWarning("FadeOverlay not assigned in SceneManagerController!");
+        }
+    }
+
+    /// <summary>
+    /// Новая игра - загрузка сцены хаба
+    /// </summary>
     public void StartNewGame()
     {
         StartCoroutine(LoadSceneAsync("Hub_Inn"));
     }
+
+    /// <summary>
+    /// Продолжить игру - загрузка сохранения и переход в хаб
+    /// </summary>
+    public void ContinueGame()
+    {
+        if (SaveSystem.HasSave())
+        {
+            // Загружаем данные сохранения
+            if (PlayerStats.Instance != null)
+            {
+                SaveSystem.LoadGame(PlayerStats.Instance);
+            }
+
+            // Переходим в хаб
+            StartCoroutine(LoadSceneAsync("Hub_Inn"));
+        }
+        else
+        {
+            Debug.LogWarning("No save file found!");
+        }
+    }
+
+    /// <summary>
+    /// Временный метод для теста боевой сцены
+    /// </summary>
     public void LoadTestCombat()
     {
-        // Закрываем инвентарь ПЕРЕД переходом в бой
+        // Закрываем инвентарь перед переходом
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.ForceCloseInventory();
@@ -21,54 +73,81 @@ public class SceneManagerController : MonoBehaviour
         StartCoroutine(LoadSceneAsync("Combat_Forest"));
     }
 
-    // Добавь метод для возврата в хаб из боя
-    public void ReturnToHubFromCombat()
-    {
-        // Закрываем инвентарь при возврате
-        if (InventoryManager.Instance != null)
-        {
-            InventoryManager.Instance.ForceCloseInventory();
-        }
-
-        StartCoroutine(LoadSceneAsync("Hub_Inn"));
-    }
-    public void ContinueGame()
-    {
-        // Пока просто загружаем хаб, позже добавим проверку сохранения
-        if (PlayerPrefs.HasKey("SaveExists"))
-            StartCoroutine(LoadSceneAsync("Hub_Inn"));
-    }
-
-    public void QuitGame()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-    }
-
-    public void BackMainMenu()
+    /// <summary>
+    /// Вернуться в главное меню
+    /// </summary>
+    public void ReturnToMainMenu()
     {
         StartCoroutine(LoadSceneAsync("MainMenu"));
     }
-    // Метод для плавной загрузки сцен
-    private System.Collections.IEnumerator LoadSceneAsync(string sceneName)
+
+    /// <summary>
+    /// Выход из игры
+    /// </summary>
+    public void ExitGame()
     {
-        // 1. Включаем затемнение
-        if (fadePanel != null) fadePanel.SetActive(true);
+        Debug.Log("Exiting game...");
+        Application.Quit();
 
-        // Ждем пока экран станет черным (можно настроить время в анимации)
-        yield return new WaitForSeconds(0.5f);
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+    }
 
-        // 2. Загружаем сцену
-        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+    /// <summary>
+    /// Переключить инвентарь (вызывается кнопкой в хабе)
+    /// </summary>
+    public void ToggleInventoryButton()
+    {
+        Debug.Log("[SceneManagerController] ToggleInventoryButton called");
+        if (InventoryManager.Instance != null)
+        {
+            Debug.Log("[SceneManagerController] InventoryManager.Instance found");
+            InventoryManager.Instance.ToggleInventory();
+        }
+        else
+        {
+            Debug.LogError("[SceneManagerController] InventoryManager.Instance is NULL!");
+        }
+    }
 
-        while (!operation.isDone)
+    /// <summary>
+    /// Асинхронная загрузка сцены с затемнением
+    /// </summary>
+    public IEnumerator LoadSceneAsync(string sceneName)
+    {
+        // Включаем затемнение
+        if (fadeOverlay != null)
+        {
+            fadeOverlay.SetActive(true);
+            // Здесь можно добавить анимацию fade in
+        }
+
+        // Ждём немного для эффекта
+        yield return new WaitForSeconds(fadeDuration);
+
+        // Загружаем сцену
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+
+        while (!asyncLoad.isDone)
         {
             yield return null;
         }
 
-        // 3. Сцена загружена, затемнение останется активным до инициализации новой сцены
+        // Выключаем затемнение
+        if (fadeOverlay != null)
+        {
+            // Здесь можно добавить анимацию fade out
+            fadeOverlay.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Перезагрузить текущую сцену
+    /// </summary>
+    public void ReloadCurrentScene()
+    {
+        string currentScene = SceneManager.GetActiveScene().name;
+        StartCoroutine(LoadSceneAsync(currentScene));
     }
 }

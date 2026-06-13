@@ -16,12 +16,6 @@ public class InventoryManager : MonoBehaviour
     public Transform slotShield;
     public Transform slotArmor;
 
-    [Header("Data")]
-    public List<ItemData> inventory = new List<ItemData>();
-    public ItemData equippedWeapon;
-    public ItemData equippedShield;
-    public ItemData equippedArmor;
-
     [Header("HUD Group")]
     public GameObject hudGroup;
 
@@ -34,58 +28,13 @@ public class InventoryManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        // Подписываемся на загрузку любой сцены
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
     }
-
-    private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
-    {
-        Debug.Log($"Scene loaded: {scene.name}");
-
-        // Когда загружается Hub_Inn — закрываем инвентарь
-        if (scene.name == "Hub_Inn")
-        {
-            // Ищем окно инвентаря в только что загруженной сцене
-            inventoryWindow = GameObject.Find("Inventory_Window");
-
-            if (inventoryWindow != null)
-            {
-                inventoryWindow.SetActive(false);
-                Debug.Log("Inventory closed on scene load");
-            }
-
-            if (hudGroup != null)
-            {
-                hudGroup.SetActive(true);
-            }
-        }
-    }
-
-    private void OnDestroy()
-    {
-        // Отписываемся при уничтожении
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    private bool isInitialized = false;
 
     private void Start()
     {
-        if (isInitialized) return;
-
         playerStats = PlayerStats.Instance;
 
-        // Загружаем стартовые предметы только один раз
-        if (inventory.Count == 0)
-        {
-            LoadStartingItems();
-        }
-
-        // Закрываем инвентарь по умолчанию
         if (inventoryWindow != null)
             inventoryWindow.SetActive(false);
 
@@ -93,86 +42,39 @@ public class InventoryManager : MonoBehaviour
             hudGroup.SetActive(true);
 
         RefreshInventoryUI();
-
-        // КРИТИЧНО: пересчитываем статы ПОСЛЕ загрузки предметов
         RecalculateStats();
-
-        isInitialized = true;
-
-        // Подписываемся на загрузку сцен
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
     }
-
-    private void RecalculateStats()
-    {
-        if (playerStats == null)
-        {
-            playerStats = PlayerStats.Instance;
-        }
-
-        if (playerStats != null)
-        {
-            playerStats.RecalculateStats();
-            Debug.Log($"[Inventory] Stats recalculated at start: Weapon={playerStats.totalWeaponDamageBonus}, Armor={playerStats.totalArmorBonus}, Shield={playerStats.totalShieldBonus}");
-        }
-    }
-
-    private void LoadStartingItems()
-    {
-        // Создаём ScriptableObject-предметы программно или через Resources.Load
-        // Для демо можно задать через инспектор
-    }
-
-    // Вызывай этот метод перед переходом в любую сцену
-    public void ForceCloseInventory()
-    {
-        if (inventoryWindow != null && inventoryWindow.activeSelf)
-        {
-            inventoryWindow.SetActive(false);
-        }
-
-        if (hudGroup != null && !hudGroup.activeSelf)
-        {
-            hudGroup.SetActive(true);
-        }
-    }
-
 
     public void ToggleInventory()
     {
+        Debug.Log("[InventoryManager] ToggleInventory called");
+        Debug.Log($"[InventoryManager] inventoryWindow = {(inventoryWindow != null ? inventoryWindow.name : "NULL")}");
+
         if (inventoryWindow == null)
         {
-            inventoryWindow = GameObject.Find("Inventory_Window");
+            Debug.LogError("[InventoryManager] inventoryWindow is NULL! Assign it in Inspector.");
+            return;
         }
-
-        if (inventoryWindow == null) return;
 
         bool isOpen = !inventoryWindow.activeSelf;
         inventoryWindow.SetActive(isOpen);
 
-        if (isOpen)
-        {
-            // При открытии обновляем UI
-            RefreshInventoryUI();
-        }
+        Debug.Log($"[InventoryManager] Inventory {(isOpen ? "OPENED" : "CLOSED")}");
 
         if (hudGroup != null)
             hudGroup.SetActive(!isOpen);
     }
 
-
     public void RefreshInventoryUI()
     {
         if (gridContent == null || itemSlotPrefab == null) return;
 
-        // Очищаем старые ячейки
         foreach (Transform child in gridContent)
-        {
             Destroy(child.gameObject);
-        }
 
-        // Создаём новые только для предметов в inventory
-        foreach (ItemData item in inventory)
+        if (InventoryData.Instance == null) return;
+
+        foreach (ItemData item in InventoryData.Instance.inventory)
         {
             if (item == null) continue;
 
@@ -184,39 +86,36 @@ public class InventoryManager : MonoBehaviour
 
     public void EquipItem(ItemData item)
     {
-        if (item == null || !inventory.Contains(item)) return;
+        if (item == null || !InventoryData.Instance.inventory.Contains(item)) return;
 
         ItemData oldItem = null;
 
         switch (item.type)
         {
             case ItemData.ItemType.Weapon:
-                oldItem = equippedWeapon;
-                equippedWeapon = item;
+                oldItem = InventoryData.Instance.equippedWeapon;
+                InventoryData.Instance.equippedWeapon = item;
                 UpdateEquipmentSlotVisual(slotWeapon, item);
                 break;
             case ItemData.ItemType.Shield:
-                oldItem = equippedShield;
-                equippedShield = item;
+                oldItem = InventoryData.Instance.equippedShield;
+                InventoryData.Instance.equippedShield = item;
                 UpdateEquipmentSlotVisual(slotShield, item);
                 break;
             case ItemData.ItemType.Armor:
-                oldItem = equippedArmor;
-                equippedArmor = item;
+                oldItem = InventoryData.Instance.equippedArmor;
+                InventoryData.Instance.equippedArmor = item;
                 UpdateEquipmentSlotVisual(slotArmor, item);
                 break;
             default:
                 return;
         }
 
-        inventory.Remove(item);
-        if (oldItem != null) inventory.Add(oldItem);
+        InventoryData.Instance.inventory.Remove(item);
+        if (oldItem != null) InventoryData.Instance.inventory.Add(oldItem);
 
         RefreshInventoryUI();
         RecalculateStats();
-
-        if (TooltipManager.Instance != null)
-            TooltipManager.Instance.HideTooltip();
     }
 
     public void UnequipItem(ItemData.ItemType type)
@@ -227,38 +126,40 @@ public class InventoryManager : MonoBehaviour
         switch (type)
         {
             case ItemData.ItemType.Weapon:
-                if (equippedWeapon == null) return;
-                itemToReturn = equippedWeapon;
-                equippedWeapon = null;
+                if (InventoryData.Instance.equippedWeapon == null) return;
+                itemToReturn = InventoryData.Instance.equippedWeapon;
+                InventoryData.Instance.equippedWeapon = null;
                 targetSlot = slotWeapon;
                 break;
             case ItemData.ItemType.Shield:
-                if (equippedShield == null) return;
-                itemToReturn = equippedShield;
-                equippedShield = null;
+                if (InventoryData.Instance.equippedShield == null) return;
+                itemToReturn = InventoryData.Instance.equippedShield;
+                InventoryData.Instance.equippedShield = null;
                 targetSlot = slotShield;
                 break;
             case ItemData.ItemType.Armor:
-                if (equippedArmor == null) return;
-                itemToReturn = equippedArmor;
-                equippedArmor = null;
+                if (InventoryData.Instance.equippedArmor == null) return;
+                itemToReturn = InventoryData.Instance.equippedArmor;
+                InventoryData.Instance.equippedArmor = null;
                 targetSlot = slotArmor;
                 break;
         }
 
         if (itemToReturn != null)
         {
-            inventory.Add(itemToReturn);
+            InventoryData.Instance.inventory.Add(itemToReturn);
             UpdateEquipmentSlotVisual(targetSlot, null);
             RefreshInventoryUI();
             RecalculateStats();
-
-            if (TooltipManager.Instance != null)
-                TooltipManager.Instance.HideTooltip();
         }
     }
 
-    
+    private void RecalculateStats()
+    {
+        if (playerStats == null) playerStats = PlayerStats.Instance;
+        if (playerStats != null) playerStats.RecalculateStats();
+    }
+
     private void UpdateEquipmentSlotVisual(Transform slot, ItemData item)
     {
         if (slot == null) return;
@@ -267,6 +168,25 @@ public class InventoryManager : MonoBehaviour
         {
             iconImage.sprite = (item != null && item.icon != null) ? item.icon : null;
             iconImage.enabled = true;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
+    public void ForceCloseInventory()
+    {
+        if (inventoryWindow != null && inventoryWindow.activeSelf)
+        {
+            inventoryWindow.SetActive(false);
+        }
+
+        if (hudGroup != null && !hudGroup.activeSelf)
+        {
+            hudGroup.SetActive(true);
         }
     }
 }

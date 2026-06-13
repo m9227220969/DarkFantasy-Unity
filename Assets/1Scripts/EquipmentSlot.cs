@@ -33,13 +33,14 @@ public class EquipmentSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterH
         ItemData itemToShow = null;
 
         // Определяем, что сейчас надето в этом слоте
-        if (InventoryManager.Instance != null)
+        // Определяем, что сейчас надето в этом слоте
+        if (InventoryData.Instance != null)
         {
             switch (slotType)
             {
-                case ItemData.ItemType.Weapon: itemToShow = InventoryManager.Instance.equippedWeapon; break;
-                case ItemData.ItemType.Shield: itemToShow = InventoryManager.Instance.equippedShield; break;
-                case ItemData.ItemType.Armor: itemToShow = InventoryManager.Instance.equippedArmor; break;
+                case ItemData.ItemType.Weapon: itemToShow = InventoryData.Instance.equippedWeapon; break;
+                case ItemData.ItemType.Shield: itemToShow = InventoryData.Instance.equippedShield; break;
+                case ItemData.ItemType.Armor: itemToShow = InventoryData.Instance.equippedArmor; break;
             }
         }
 

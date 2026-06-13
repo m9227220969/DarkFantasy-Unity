@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class ButtonHandler : MonoBehaviour
@@ -10,7 +10,8 @@ public class ButtonHandler : MonoBehaviour
         ReturnToMainMenu,
         ExitGame,
         StartNewGame,
-        ContinueGame
+        ContinueGame,
+        UsePotion  // ← Добавлено
     }
 
     public ActionType action;
@@ -20,16 +21,8 @@ public class ButtonHandler : MonoBehaviour
         switch (action)
         {
             case ActionType.ToggleInventory:
-                Debug.Log("[ButtonHandler] ToggleInventory clicked");
                 if (SceneManagerController.Instance != null)
-                {
-                    Debug.Log("[ButtonHandler] SceneManagerController.Instance found");
                     SceneManagerController.Instance.ToggleInventoryButton();
-                }
-                else
-                {
-                    Debug.LogError("[ButtonHandler] SceneManagerController.Instance is NULL!");
-                }
                 break;
             case ActionType.LoadTestCombat:
                 if (SceneManagerController.Instance != null)
@@ -50,6 +43,10 @@ public class ButtonHandler : MonoBehaviour
             case ActionType.ContinueGame:
                 if (SceneManagerController.Instance != null)
                     SceneManagerController.Instance.ContinueGame();
+                break;
+            case ActionType.UsePotion:
+                if (CombatManager.Instance != null)
+                    CombatManager.Instance.OnUsePotionClicked();
                 break;
         }
     }

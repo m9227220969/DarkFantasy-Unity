@@ -46,6 +46,23 @@ public class CombatManager : MonoBehaviour
 
     private Image[] attackButtonImages;
     private Image[] blockButtonImages;
+    public static CombatManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
 
     private void Start()
     {
@@ -119,6 +136,44 @@ public class CombatManager : MonoBehaviour
         timerRunning = false;
         combatLogText.text += "Choice confirmed.\n";
         ProceedToPhase2();
+    }
+
+    public void OnUsePotionClicked()
+    {
+        if (currentPhase != CombatPhase.Phase1_Player || playerHasConfirmed) return;
+
+        // Ищем зелье в инвентаре
+        ItemData potion = null;
+        if (InventoryData.Instance != null)
+        {
+            foreach (var item in InventoryData.Instance.inventory)
+            {
+                if (item != null && item.type == ItemData.ItemType.Consumable && item.healAmount > 0)
+                {
+                    potion = item;
+                    break;
+                }
+            }
+        }
+
+        if (potion == null)
+        {
+            Debug.Log("No potions available!");
+            return;
+        }
+
+        // Применяем зелье
+        playerStats.Heal(potion.healAmount);
+        UpdateHPBars();
+
+        // Удаляем зелье из инвентаря
+        InventoryData.Instance.inventory.Remove(potion);
+
+        if (InventoryManager.Instance != null)
+            InventoryManager.Instance.RefreshInventoryUI();
+
+        combatLogText.text += $"Used potion: +{potion.healAmount} HP\n";
+        Debug.Log($"Potion used! Healed {potion.healAmount} HP");
     }
 
     private void ProceedToPhase2()

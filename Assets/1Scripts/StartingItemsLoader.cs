@@ -27,6 +27,17 @@ public class StartingItemsLoader : MonoBehaviour
             if (startPie != null) invData.inventory.Add(startPie);
 
             Debug.Log($"Starting items loaded: Weapon={startWeapon != null}, Shield={startShield != null}, Armor={startArmor != null}, Pie={startPie != null}");
+
+            // КРИТИЧНО: Обновляем UI после загрузки предметов
+            if (InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.RefreshInventoryUI();
+                Debug.Log("Inventory UI refreshed after loading starting items");
+            }
+            else
+            {
+                Debug.LogWarning("InventoryManager.Instance is null! UI will not update.");
+            }
         }
     }
 }
